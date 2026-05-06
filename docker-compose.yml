@@ -1,0 +1,123 @@
+services:
+
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: petly2024
+      POSTGRES_DB: postgres
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init-db.sql:/docker-entrypoint-initdb.d/init-db.sql
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  usuarios-service:
+    build: ./usuarios-service
+    ports:
+      - "8081:8081"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/bd_Usuarios
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: petly2024
+      SPRING_JPA_DATABASE_PLATFORM: org.hibernate.dialect.PostgreSQLDialect
+      JWT_SECRET: petly-jwt-secret-docker-2024
+      SERVER_PORT: 8081
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  mascotas-service:
+    build: ./mascotas-service
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/bd_Mascotas
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: petly2024
+      SPRING_JPA_DATABASE_PLATFORM: org.hibernate.dialect.PostgreSQLDialect
+      JWT_SECRET: petly-jwt-secret-docker-2024
+      OCI_PRIVATE_KEY_PATH: /app/oci_api_key.pem
+    volumes:
+      - ./mascotas-service/oci_api_key.pem:/app/oci_api_key.pem:ro
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  geolocalizacion-service:
+    build: ./geolocalizacion-service
+    ports:
+      - "8082:8082"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/bd_Geo
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: petly2024
+      SPRING_JPA_DATABASE_PLATFORM: org.hibernate.dialect.PostgreSQLDialect
+      SERVER_PORT: 8082
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  reportes-service:
+    build: ./reportes-service
+    ports:
+      - "8083:8083"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/bd_Reportes
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: petly2024
+      SPRING_JPA_DATABASE_PLATFORM: org.hibernate.dialect.PostgreSQLDialect
+      JWT_SECRET: petly-jwt-secret-docker-2024
+      SERVER_PORT: 8083
+      OCI_PRIVATE_KEY_PATH: /app/oci_api_key.pem
+    volumes:
+      - ./mascotas-service/oci_api_key.pem:/app/oci_api_key.pem:ro
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  coincidencias-service:
+    build: ./coincidencias-service
+    ports:
+      - "8085:8085"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/bd_Coincidencias
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: petly2024
+      SPRING_JPA_DATABASE_PLATFORM: org.hibernate.dialect.PostgreSQLDialect
+      SERVER_PORT: 8085
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  notificaciones-service:
+    build: ./notificaciones-service
+    ports:
+      - "8086:8086"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/bd_Notificaciones
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: petly2024
+      SPRING_JPA_DATABASE_PLATFORM: org.hibernate.dialect.PostgreSQLDialect
+      SERVER_PORT: 8086
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  frontend:
+    build:
+      context: ../FrontPetly
+    ports:
+      - "80:80"
+    depends_on:
+      - usuarios-service
+      - mascotas-service
+      - reportes-service
+
+volumes:
+  postgres_data:
