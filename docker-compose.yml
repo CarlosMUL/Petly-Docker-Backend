@@ -112,6 +112,8 @@ services:
   frontend:
     build:
       context: ../FrontPetly
+      args:
+        VITE_MAPBOX_TOKEN: ${VITE_MAPBOX_TOKEN}
     ports:
       - "80:80"
     depends_on:
