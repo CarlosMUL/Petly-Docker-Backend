@@ -1,0 +1,128 @@
+services:
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: sanosysalvos-db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init-db.sql:/docker-entrypoint-initdb.d/init-db.sql
+    ports:
+      - "5432:5432"
+    networks:
+      - sanosysalvos-net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  usuarios-service:
+    build: ./usuarios-service
+    image: ${DOCKER_USER}/usuarios-service:latest
+    container_name: usuarios-service
+    environment:
+      DB_URL: jdbc:postgresql://postgres:5432/bd_Usuarios
+      DB_USERNAME: postgres
+      DB_PASSWORD: ${DB_PASSWORD}
+      JWT_SECRET: ${JWT_SECRET}
+      SERVER_PORT: 8080
+    ports:
+      - "8080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - sanosysalvos-net
+
+  mascotas-service:
+    build: ./mascotas-service
+    image: ${DOCKER_USER}/mascotas-service:latest
+    container_name: mascotas-service
+    environment:
+      DB_URL: jdbc:postgresql://postgres:5432/bd_Mascotas
+      DB_USERNAME: postgres
+      DB_PASSWORD: ${DB_PASSWORD}
+      JWT_SECRET: ${JWT_SECRET}
+      OCI_USER_ID: ${OCI_USER_ID}
+      OCI_TENANCY_ID: ${OCI_TENANCY_ID}
+      OCI_FINGERPRINT: ${OCI_FINGERPRINT}
+      OCI_REGION: ${OCI_REGION}
+      OCI_NAMESPACE: ${OCI_NAMESPACE}
+      OCI_BUCKET: ${OCI_BUCKET}
+      OCI_PRIVATE_KEY_PATH: /app/oci_api_key.pem
+      SERVER_PORT: 8083
+    volumes:
+      - ./mascotas-service/oci_api_key.pem:/app/oci_api_key.pem:ro
+    ports:
+      - "8083:8083"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - sanosysalvos-net
+
+  reportes-service:
+    build: ./reportes-service
+    image: ${DOCKER_USER}/reportes-service:latest
+    container_name: reportes-service
+    environment:
+      DB_URL: jdbc:postgresql://postgres:5432/bd_Reportes
+      DB_USERNAME: postgres
+      DB_PASSWORD: ${DB_PASSWORD}
+      SERVER_PORT: 8081
+    ports:
+      - "8081:8081"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - sanosysalvos-net
+
+  geolocalizacion-service:
+    build: ./geolocalizacion-service
+    image: ${DOCKER_USER}/geolocalizacion-service:latest
+    container_name: geolocalizacion-service
+    environment:
+      DB_URL: jdbc:postgresql://postgres:5432/bd_Geo
+      DB_USERNAME: postgres
+      DB_PASSWORD: ${DB_PASSWORD}
+      SERVER_PORT: 8082
+    ports:
+      - "8082:8082"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - sanosysalvos-net
+
+  notificaciones-service:
+    build: ./notificaciones-service
+    image: ${DOCKER_USER}/notificaciones-service:latest
+    container_name: notificaciones-service
+    environment:
+      SERVER_PORT: 8084
+    ports:
+      - "8084:8084"
+    networks:
+      - sanosysalvos-net
+
+  coincidencias-service:
+    build: ./coincidencias-service
+    image: ${DOCKER_USER}/coincidencias-service:latest
+    container_name: coincidencias-service
+    environment:
+      SERVER_PORT: 8085
+    ports:
+      - "8085:8085"
+    networks:
+      - sanosysalvos-net
+
+networks:
+  sanosysalvos-net:
+    driver: bridge
+
+volumes:
+  postgres_data:

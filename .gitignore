@@ -1,0 +1,20 @@
+# Credenciales y secretos - NUNCA subir al repo
+.env
+*.pem
+
+# Maven build
+target/
+!.mvn/wrapper/maven-wrapper.jar
+!**/src/main/**/target/
+!**/src/test/**/target/
+
+# IDE
+.idea/
+*.iml
+*.ipr
+*.iws
+.vscode/settings.json
+
+# OS
+.DS_Store
+Thumbs.db
