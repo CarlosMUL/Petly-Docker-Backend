@@ -26,6 +26,9 @@ public class Reporte {
     @Column(name = "ID_REPORTE")
     private long idreporte;
 
+    @Column(name = "RUNUSUARIO", length = 9)
+    private Integer runUsuario;
+    
     @Column(name = "TIPO_REPORTE", nullable = false)
     @Enumerated(EnumType.STRING)
     private TipoReporte tipoReporte;

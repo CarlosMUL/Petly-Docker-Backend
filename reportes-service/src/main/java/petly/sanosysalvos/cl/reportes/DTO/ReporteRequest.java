@@ -23,4 +23,5 @@ public class ReporteRequest {
     private String sexo;
     private Integer edadAproximada;
     private String otraEspecie;
+    private Integer run;
 }

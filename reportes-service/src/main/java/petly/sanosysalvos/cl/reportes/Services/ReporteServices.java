@@ -78,7 +78,7 @@ public class ReporteServices {
     }
 
     // Crear
-    public Reporte crear(ReporteRequest dto, MultipartFile imagen) throws IOException {
+    public Reporte crear(ReporteRequest dto, MultipartFile imagen, Integer run) throws IOException {
 
         // Crear geo
         GeoRequest geoReq = new GeoRequest();
@@ -123,6 +123,7 @@ public class ReporteServices {
         r.setSexo(Sexo.valueOf(dto.getSexo()));
         r.setEdadAproximada(dto.getEdadAproximada());
         r.setEstadoReporte(EstadoReporte.ACTIVO);
+        r.setRunUsuario(run);
 
         return reporterepository.save(r);
     }
