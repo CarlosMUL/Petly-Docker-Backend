@@ -13,8 +13,10 @@ import petly.sanosysalvos.cl.reportes.Client.GeoClient;
 import petly.sanosysalvos.cl.reportes.DTO.GeoDTO;
 import petly.sanosysalvos.cl.reportes.DTO.GeoRequest;
 import petly.sanosysalvos.cl.reportes.DTO.GeoResponse;
+import petly.sanosysalvos.cl.reportes.DTO.ReporteEventoDTO;
 import petly.sanosysalvos.cl.reportes.DTO.ReporteGeoDTO;
 import petly.sanosysalvos.cl.reportes.DTO.ReporteRequest;
+import petly.sanosysalvos.cl.reportes.Messaging.ReporteEventoPublisher;
 import petly.sanosysalvos.cl.reportes.Model.Especie;
 import petly.sanosysalvos.cl.reportes.Model.EstadoReporte;
 import petly.sanosysalvos.cl.reportes.Model.Reporte;
@@ -30,12 +32,14 @@ public class ReporteServices {
     private final ReporteRepository reporterepository;
     private final GeoClient geoClient;
     private final OracleStorageService oracleStorageService;
+    private final ReporteEventoPublisher reporteEventoPublisher;
 
     public ReporteServices(ReporteRepository reporterepository, GeoClient geoClient,
-            OracleStorageService oracleStorageService) {
+            OracleStorageService oracleStorageService, ReporteEventoPublisher reporteEventoPublisher) {
         this.reporterepository = reporterepository;
         this.geoClient = geoClient;
         this.oracleStorageService = oracleStorageService;
+        this.reporteEventoPublisher = reporteEventoPublisher;
     }
 
     // LISTAR Reportes
@@ -125,7 +129,31 @@ public class ReporteServices {
         r.setEstadoReporte(EstadoReporte.ACTIVO);
         r.setRunUsuario(run);
 
-        return reporterepository.save(r);
+        Reporte saved = reporterepository.save(r);
+
+        ReporteEventoDTO evento = ReporteEventoDTO.builder()
+                .reporteId(saved.getIdreporte())
+                .tipoReporte(saved.getTipoReporte().name())
+                .especie(saved.getEspecie().name())
+                .raza(saved.getRaza())
+                .colorPrincipal(saved.getColorPrincipal())
+                .latitud(dto.getLatitud())
+                .longitud(dto.getLongitud())
+                .fechaReporte(saved.getFechaReporte())
+                .imagenUrl(saved.getImagenUrl())
+                .descripcion(saved.getDescripcion())
+                .tamanio(saved.getTamanio() != null ? saved.getTamanio().name() : null)
+                .sexo(saved.getSexo() != null ? saved.getSexo().name() : null)
+                .edadAproximada(saved.getEdadAproximada())
+                .contacto(saved.getContacto())
+                .runUsuario(saved.getRunUsuario())
+                .otraEspecie(saved.getOtraEspecie())
+                .estadoReporte(saved.getEstadoReporte().name())
+                .build();
+
+        reporteEventoPublisher.publicarReporteNuevo(evento);
+
+        return saved;
     }
 
     // Listar con datos de Localización

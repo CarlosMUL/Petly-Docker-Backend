@@ -1,0 +1,15 @@
+fastapi==0.115.0
+uvicorn[standard]==0.30.6
+pydantic==2.8.2
+pydantic-settings==2.4.0
+sqlalchemy==2.0.35
+psycopg2-binary==2.9.9
+aio-pika==9.4.3
+python-dotenv==1.0.1
+redis[hiredis]==5.0.8
+
+# ML / scoring
+numpy==1.26.4
+scikit-learn==1.5.2
+sentence-transformers==3.1.1
+Pillow==10.4.0
