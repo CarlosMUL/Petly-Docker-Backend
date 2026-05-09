@@ -1,5 +1,6 @@
 package petly.sanosysalvos.cl.mascotas.Services;
 
+import java.io.ByteArrayInputStream;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.UUID;
@@ -29,7 +30,8 @@ public class OracleStorageService {
             @Value("${OCI_USER_ID}") String userId,
             @Value("${OCI_TENANCY_ID}") String tenancyId,
             @Value("${OCI_FINGERPRINT}") String fingerprint,
-            @Value("${OCI_PRIVATE_KEY_PATH}") String privateKeyPath) {
+            @Value("${OCI_PRIVATE_KEY_PATH:}") String privateKeyPath,
+            @Value("${OCI_PRIVATE_KEY_CONTENT:}") String privateKeyContent) {
 
         this.namespace = namespace;
         this.bucketName = bucketName;
@@ -42,6 +44,9 @@ public class OracleStorageService {
                     .fingerprint(fingerprint)
                     .privateKeySupplier(() -> {
                         try {
+                            if (privateKeyContent != null && !privateKeyContent.isBlank()) {
+                                return new ByteArrayInputStream(privateKeyContent.getBytes());
+                            }
                             return new FileInputStream(privateKeyPath);
                         } catch (Exception e) {
                             throw new RuntimeException(e);
