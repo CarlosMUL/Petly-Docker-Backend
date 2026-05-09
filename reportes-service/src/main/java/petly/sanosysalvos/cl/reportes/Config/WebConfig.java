@@ -10,7 +10,10 @@ public class WebConfig implements WebMvcConfigurer {
     @Override
      public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/petly/**")
-                .allowedOrigins("http://localhost:5173")
+                .allowedOrigins(
+                    "http://localhost:5173",
+                    "https://petly-docker-frontend-production.up.railway.app"
+                )
                 .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                 .allowedHeaders("*")
                 .allowCredentials(false);
