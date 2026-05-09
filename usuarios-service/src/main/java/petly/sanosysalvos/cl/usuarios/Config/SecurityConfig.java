@@ -2,6 +2,7 @@ package petly.sanosysalvos.cl.usuarios.Config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -26,6 +27,7 @@ public class SecurityConfig {
                 .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) //Spring NO va a crear ni mantener sesiones en el servidor.
                 .authorizeHttpRequests(auth -> auth
                         // Rutas públicas (cualquiera puede acceder SIN token)
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers("/petly/usuarios/registrar", "/petly/auth/login").permitAll()
                         // Todo lo demás requiere autenticación (tener token válido)
                         .anyRequest().authenticated()
